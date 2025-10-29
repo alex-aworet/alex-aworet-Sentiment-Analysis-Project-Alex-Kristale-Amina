@@ -3,6 +3,8 @@ import pandas as pd
 # Load data from a CSV file
 def load_file(path):
     try:
+        if not path.lower().endswith('.csv'):
+            raise ValueError("The file must be a csv")
         data = pd.read_csv(path)
         return data
     except FileNotFoundError:
@@ -17,6 +19,7 @@ def check_columns(df):
         if col not in df.columns:
             print(f"Error: Missing required column '{col}' in the DataFrame")
             return False
+    print("All required columns are present")
     return True
 
 if __name__ == "__main__":
