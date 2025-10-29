@@ -22,7 +22,7 @@ def check_columns(df):
     print("All required columns are present")
     return True
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     path = "data/dataset.csv"
     df = load_file(path)
     print(check_columns(df))
