@@ -51,7 +51,7 @@ class SentimentPredictor:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         # Load model
-        logging.info()
+        logging.info(f"Loading model from: {model_path}")
         self.model = create_model(n_classes=n_classes, model_name=model_name)
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.eval()
