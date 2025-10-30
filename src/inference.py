@@ -8,6 +8,8 @@ from transformers import BertForSequenceClassification, AutoTokenizer
 from typing import List, Dict, Union
 import sys
 import os
+import logging
+import argparse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -45,11 +47,11 @@ class SentimentPredictor:
         }
 
         # Load tokenizer
-        print(f"Loading tokenizer: {model_name}")
+        logging.info(f"Loading tokenizer: {model_name}")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         # Load model
-        print(f"Loading model from: {model_path}")
+        logging.info()
         self.model = create_model(n_classes=n_classes, model_name=model_name)
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.eval()
@@ -127,7 +129,6 @@ def main():
     """
     Main function for interactive sentiment analysis.
     """
-    import argparse
 
     parser = argparse.ArgumentParser(description='Sentiment Analysis Inference')
     parser.add_argument(
@@ -174,5 +175,5 @@ def main():
             print(f"  {sentiment.capitalize()}: {prob:.2%}")
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover <-- this
     main()
