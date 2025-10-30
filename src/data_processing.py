@@ -2,6 +2,7 @@
 data_processing.py
 """
 
+from src.data_extraction import load_file, check_columns
 import re
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -11,7 +12,6 @@ from torch.utils.data import Dataset
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.data_extraction import load_file, check_columns  
 
 
 # ==========================
@@ -22,10 +22,10 @@ def clean_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
     text = text.lower()
-    text = re.sub(r"http\\S+|www\\S+", "", text)
+    text = re.sub(r"http\S+|www\S+", "", text)
     text = re.sub(r"@\w+|#\w+", "", text)
-    text = re.sub(r"[^a-z\\s]", "", text)
-    text = re.sub(r"\\s+", " ", text).strip()
+    text = re.sub(r"[^a-z\s]", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
@@ -54,11 +54,34 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
 # SPLIT & TOKENIZATION
 # ==========================
 
-def split_data(df: pd.DataFrame, test_size: float = 0.2, random_state: int = 42):
-    return train_test_split(df, test_size=test_size, stratify=df["sentiment"], random_state=random_state)
+def split_data(
+        df: pd.DataFrame,
+        test_size: float = 0.2,
+        random_state: int = 42):
+    # Check if stratification is possible
+    # Stratification requires: test_size * len(df) >= number of classes
+    min_samples_per_class = df["sentiment"].value_counts().min()
+    n_classes = df["sentiment"].nunique()
+    n_test = int(test_size * len(df))
+
+    # If test set would be smaller than number of classes, don't stratify
+    if n_test < n_classes or min_samples_per_class < 2:
+        return train_test_split(
+            df,
+            test_size=test_size,
+            random_state=random_state)
+    else:
+        return train_test_split(
+            df,
+            test_size=test_size,
+            stratify=df["sentiment"],
+            random_state=random_state)
 
 
-def tokenize_data(df: pd.DataFrame, tokenizer_name: str = "bert-base-cased", max_len: int = 160):
+def tokenize_data(
+        df: pd.DataFrame,
+        tokenizer_name: str = "bert-base-cased",
+        max_len: int = 160):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     encodings = tokenizer(
         list(df["content"]),
@@ -113,8 +136,8 @@ class ReviewDataset(Dataset):
 if __name__ == "__main__":
     path = "data/dataset.csv"
     print(">>> Loading dataset from data_extraction module...")
-    df = load_file(path)            
-    if df is not None and check_columns(df):  
+    df = load_file(path)
+    if df is not None and check_columns(df):
         print(">>> Cleaning and preparing dataset...")
         df = clean_dataset(df)
         train_df, val_df = split_data(df)
